@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+pnpm-debug.log
+.vscode
+.git
+.gitignore
+biome.json
+vitest.config.ts
+tsconfig.json
+README.md
+Dockerfile
+docker-compose*.yml
