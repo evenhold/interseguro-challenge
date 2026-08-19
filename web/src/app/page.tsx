@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import MatrixGrid from "@/components/MatrixGrid";
 
 const API_GO = process.env.NEXT_PUBLIC_API_GO_URL || "http://localhost:3001";
 
@@ -124,11 +125,15 @@ export default function Home() {
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Original</p>
-                    <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.original, null, 2)}</pre>
+                    <div className="mt-2">
+                      <MatrixGrid matrix={result.original} />
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rotada ({result.degrees}°)</p>
-                    <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.rotated, null, 2)}</pre>
+                    <div className="mt-2">
+                      <MatrixGrid matrix={result.rotated} />
+                    </div>
                   </div>
                 </div>
               </div>
