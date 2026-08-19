@@ -11,9 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
+	deliveryHTTP "github.com/user/interseguro-challenge-api-go/internal/delivery/http"
 	"github.com/user/interseguro-challenge-api-go/internal/config"
 	"github.com/user/interseguro-challenge-api-go/internal/handlers"
 	"github.com/user/interseguro-challenge-api-go/internal/middlewares"
+	"github.com/user/interseguro-challenge-api-go/internal/usecase"
 	"go.uber.org/zap"
 )
 
@@ -43,11 +45,19 @@ func main() {
 		return err
 	})
 
+	// Health routes (existing)
 	app.Get("/health", handlers.Health)
 	app.Get("/", handlers.Hello)
 
+	// Matrix rotation routes (new — Clean Architecture)
+	matrixUsecase := usecase.NewMatrixUsecase()
+	matrixHandler := deliveryHTTP.NewMatrixHandler(matrixUsecase)
+	deliveryHTTP.RegisterRoutes(app, matrixHandler)
+
+	// 404 handler
 	app.Use(middlewares.NotFoundHandler)
 
+	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 

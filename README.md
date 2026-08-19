@@ -74,11 +74,15 @@ interseguro-challenge/
 ├── compose.yml           # Producción
 ├── compose.override.yml  # Desarrollo (se carga automáticamente)
 ├── api-go/               # Fiber + Clean Architecture
-│   ├── cmd/api/main.go
+│   ├── cmd/api/main.go                    # Composition root (DI)
 │   ├── internal/
-│   │   ├── config/       # Env + Logger
-│   │   ├── handlers/     # Endpoints
-│   │   └── middlewares/   # Error handler
+│   │   ├── config/                        # Env + Logger
+│   │   ├── domain/matrix.go               # Entidades puras
+│   │   ├── usecase/matrix_usecase.go      # Lógica de rotación
+│   │   ├── delivery/http/                 # Handlers + routes
+│   │   ├── handlers/                      # Health endpoints
+│   │   └── middlewares/                    # Error handler
+│   ├── pkg/dto/                           # Request/response DTOs
 │   ├── Dockerfile
 │   └── Makefile
 ├── api-express/          # Express v5 + TypeScript 7
@@ -130,10 +134,82 @@ pnpm dev
 
 ### API Go (`:3001`)
 
-| Método | Ruta      | Descripción         |
-| ------ | --------- | ------------------- |
-| GET    | `/health` | Estado del servicio |
-| GET    | `/`       | Hola mundo          |
+| Método | Ruta                     | Descripción         |
+| ------ | ------------------------ | ------------------- |
+| GET    | `/health`                | Estado del servicio |
+| GET    | `/`                      | Hola mundo          |
+| POST   | `/api/v1/matrix/rotate`  | Rotar matriz 90°/180°/270° |
+
+#### `POST /api/v1/matrix/rotate`
+
+Rota una matriz de enteros según los grados indicados.
+
+**Request Body:**
+
+```json
+{
+  "matrix": [[1, 2, 3], [4, 5, 6]],
+  "degrees": 90
+}
+```
+
+| Campo     | Tipo       | Requerido | Descripción                     |
+| --------- | ---------- | --------- | ------------------------------- |
+| `matrix`  | `int[][]`  | Sí        | Matriz rectangular de enteros   |
+| `degrees` | `int`      | Sí        | Grados: `90`, `180` o `270`     |
+
+**Response 200:**
+
+```json
+{
+  "data": {
+    "original": [[1, 2, 3], [4, 5, 6]],
+    "rotated": [[4, 1], [5, 2], [6, 3]],
+    "degrees": 90
+  },
+  "message": "matrix rotated successfully"
+}
+```
+
+**Response 400 (error):**
+
+```json
+{
+  "error": "degrees must be 90, 180 or 270"
+}
+```
+
+**Ejemplos curl:**
+
+```bash
+# Rotar 90° horario
+curl -X POST http://localhost:3001/api/v1/matrix/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"matrix": [[1,2,3],[4,5,6]], "degrees": 90}'
+
+# Rotar 180°
+curl -X POST http://localhost:3001/api/v1/matrix/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"matrix": [[1,2,3],[4,5,6],[7,8,9]], "degrees": 180}'
+
+# Rotar 270° (= 90° antihorario)
+curl -X POST http://localhost:3001/api/v1/matrix/rotate \
+  -H "Content-Type: application/json" \
+  -d '{"matrix": [[1,2,3],[4,5,6]], "degrees": 270}'
+```
+
+**Algoritmo:**
+
+| Grados | Operación                           |
+| ------ | ----------------------------------- |
+| 90°    | `result[j][rows-1-i] = matrix[i][j]` |
+| 180°   | `result[rows-1-i][cols-1-j] = matrix[i][j]` |
+| 270°   | `result[cols-1-j][i] = matrix[i][j]` |
+
+**Validaciones:**
+- Matriz no vacía
+- Todas las filas tienen la misma longitud (rectangular válida)
+- Degrees debe ser 90, 180 o 270
 
 ### API Express (`:3002`)
 
