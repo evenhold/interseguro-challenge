@@ -20,6 +20,12 @@
 | `api-go`      | Go 1.22, Fiber v2, Zap             | 3001   |
 | `api-express` | Node.js 24, Express v5, Pino, Zod  | 3002   |
 
+## Credenciales
+
+| Usuario  | Contraseña  |
+| -------- | ----------- |
+| `admin`  | `matrix123` |
+
 ## Quick Start
 
 ```bash

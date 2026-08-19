@@ -87,9 +87,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           </button>
         </form>
 
-        <p className="mt-6 text-xs text-gray-400 text-center">
-          Credenciales: admin / matrix123
-        </p>
+
       </div>
     </div>
   );
