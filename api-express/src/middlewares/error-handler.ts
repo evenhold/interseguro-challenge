@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { env } from "../config/env";
-import { logger } from "../config/logger";
+import { env } from "../config/env.js";
+import { logger } from "../config/logger.js";
 
 export class AppError extends Error {
   constructor(

@@ -1,5 +1,5 @@
 import type { Server } from "node:http";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 
 export const setupGracefulShutdown = (server: Server): void => {
   let isShuttingDown = false;

@@ -1,0 +1,34 @@
+services:
+  api-go:
+    build:
+      context: ./api-go
+    ports:
+      - "3001:8080"
+    networks:
+      - backend
+
+  api-express:
+    build:
+      context: ./api-express
+    ports:
+      - "3002:3000"
+    networks:
+      - backend
+
+  web:
+    build:
+      context: ./web
+      args:
+        - NEXT_PUBLIC_API_GO_URL=http://localhost:3001
+        - NEXT_PUBLIC_API_EXPRESS_URL=http://localhost:3002
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-go
+      - api-express
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

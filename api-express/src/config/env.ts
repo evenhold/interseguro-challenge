@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-process.loadEnvFile();
+try {
+  process.loadEnvFile();
+} catch {
+  // .env is optional — in Docker env vars come from env_file or environment
+}
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),

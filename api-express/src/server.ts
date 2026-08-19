@@ -1,10 +1,10 @@
 import cors from "cors";
 import express, { type Request, type Response } from "express";
-import pinoHttp from "pino-http";
-import { env } from "./config/env";
-import { setupGracefulShutdown } from "./config/graceful-shutdown";
-import { logger } from "./config/logger";
-import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
+import { pinoHttp } from "pino-http";
+import { env } from "./config/env.js";
+import { setupGracefulShutdown } from "./config/graceful-shutdown.js";
+import { logger } from "./config/logger.js";
+import { errorHandler, notFoundHandler } from "./middlewares/error-handler.js";
 
 const app: express.Express = express();
 const PORT: number = env.PORT;
