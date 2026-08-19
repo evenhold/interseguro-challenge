@@ -146,7 +146,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Promedio</p>
-                    <p className="text-2xl font-bold">{result.statistics.average}</p>
+                    <p className="text-2xl font-bold">{result.statistics.average.toFixed(3)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Suma</p>
