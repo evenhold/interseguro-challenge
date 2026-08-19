@@ -4,6 +4,7 @@ import { pinoHttp } from "pino-http";
 import { env } from "./config/env.js";
 import { setupGracefulShutdown } from "./config/graceful-shutdown.js";
 import { logger } from "./config/logger.js";
+import statisticsRouter from "./features/matrix/statistics.route.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler.js";
 
 const app: express.Express = express();
@@ -29,6 +30,8 @@ app.get("/health", (_req: Request, res: Response<HealthResponse>) => {
 app.get("/", (_req: Request, res: Response<MessageResponse>) => {
   res.json({ message: "Hola mundo desde Express API" });
 });
+
+app.use(statisticsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

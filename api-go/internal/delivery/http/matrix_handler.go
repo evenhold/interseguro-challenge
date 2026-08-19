@@ -3,22 +3,24 @@ package http
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/user/interseguro-challenge-api-go/internal/domain"
+	"github.com/user/interseguro-challenge-api-go/internal/infrastructure"
 	"github.com/user/interseguro-challenge-api-go/internal/usecase"
 	"github.com/user/interseguro-challenge-api-go/pkg/dto"
 )
 
 // MatrixHandler maneja las peticiones HTTP relacionadas con matrices.
 type MatrixHandler struct {
-	usecase usecase.MatrixUsecase
+	usecase  usecase.MatrixUsecase
+	express  *infrastructure.ExpressClient
 }
 
 // NewMatrixHandler crea una nueva instancia de MatrixHandler.
-func NewMatrixHandler(uc usecase.MatrixUsecase) *MatrixHandler {
-	return &MatrixHandler{usecase: uc}
+func NewMatrixHandler(uc usecase.MatrixUsecase, express *infrastructure.ExpressClient) *MatrixHandler {
+	return &MatrixHandler{usecase: uc, express: express}
 }
 
 // Rotate maneja POST /api/matrix/rotate.
-// Recibe una matriz y los grados de rotación, retorna la matriz rotada.
+// Recibe una matriz y los grados de rotación, retorna la matriz rotada + estadísticas.
 func (h *MatrixHandler) Rotate(c *fiber.Ctx) error {
 	var req dto.RotateRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -45,11 +47,20 @@ func (h *MatrixHandler) Rotate(c *fiber.Ctx) error {
 		)
 	}
 
-	// Respuesta
-	response := dto.RotateResponse{
-		Original: matrix,
-		Rotated:  rotated,
-		Degrees:  req.Degrees,
+	// Llamar a api-express para obtener estadísticas
+	stats, err := h.express.GetStatistics([][]int(rotated))
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(
+			dto.ErrorResponse("failed to get statistics: "+err.Error()),
+		)
+	}
+
+	// Respuesta con rotación + estadísticas
+	response := dto.RotateResponseWithStats{
+		Original:    matrix,
+		Rotated:     rotated,
+		Degrees:     req.Degrees,
+		Statistics:  dto.StatisticsFromInfra(stats),
 	}
 
 	return c.Status(fiber.StatusOK).JSON(

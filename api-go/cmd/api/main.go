@@ -11,9 +11,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
-	deliveryHTTP "github.com/user/interseguro-challenge-api-go/internal/delivery/http"
 	"github.com/user/interseguro-challenge-api-go/internal/config"
+	deliveryHTTP "github.com/user/interseguro-challenge-api-go/internal/delivery/http"
 	"github.com/user/interseguro-challenge-api-go/internal/handlers"
+	"github.com/user/interseguro-challenge-api-go/internal/infrastructure"
 	"github.com/user/interseguro-challenge-api-go/internal/middlewares"
 	"github.com/user/interseguro-challenge-api-go/internal/usecase"
 	"go.uber.org/zap"
@@ -51,7 +52,15 @@ func main() {
 
 	// Matrix rotation routes (new — Clean Architecture)
 	matrixUsecase := usecase.NewMatrixUsecase()
-	matrixHandler := deliveryHTTP.NewMatrixHandler(matrixUsecase)
+
+	// Express client para estadísticas
+	expressURL := os.Getenv("API_EXPRESS_URL")
+	if expressURL == "" {
+		expressURL = "http://api-express:3000"
+	}
+	expressClient := infrastructure.NewExpressClient(expressURL)
+
+	matrixHandler := deliveryHTTP.NewMatrixHandler(matrixUsecase, expressClient)
 	deliveryHTTP.RegisterRoutes(app, matrixHandler)
 
 	// 404 handler
