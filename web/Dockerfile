@@ -11,6 +11,10 @@ ENV NEXT_PUBLIC_API_GO_URL=$NEXT_PUBLIC_API_GO_URL
 ENV NEXT_PUBLIC_API_EXPRESS_URL=$NEXT_PUBLIC_API_EXPRESS_URL
 RUN pnpm build
 
+# ---- Dev target (para compose.override.yml) ----
+FROM builder AS dev
+RUN corepack enable && corepack prepare pnpm@10.15.1 --activate
+
 # ---- Runtime stage ----
 FROM node:24-slim
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --home /app appuser

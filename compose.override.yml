@@ -36,7 +36,7 @@ services:
   web:
     build:
       context: ./web
-      target: builder
+      target: dev
       args:
         - NEXT_PUBLIC_API_GO_URL=http://localhost:3001
         - NEXT_PUBLIC_API_EXPRESS_URL=http://localhost:3002
@@ -44,7 +44,6 @@ services:
     volumes:
       - ./web:/app
       - /app/node_modules
-      - /app/.next
     ports:
       - "3000:3000"
     env_file:

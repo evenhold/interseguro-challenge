@@ -1,70 +1,130 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const API_GO = process.env.NEXT_PUBLIC_API_GO_URL || "http://localhost:3001";
-const API_EXPRESS = process.env.NEXT_PUBLIC_API_EXPRESS_URL || "http://localhost:3002";
 
-interface ServiceStatus {
-  name: string;
-  health: string;
-  message: string;
-  ok: boolean;
+interface RotateResult {
+  original: number[][];
+  rotated: number[][];
+  degrees: number;
 }
 
 export default function Home() {
-  const [services, setServices] = useState<ServiceStatus[]>([
-    { name: "API Go (Fiber)", health: "Loading...", message: "Loading...", ok: false },
-    { name: "API Express", health: "Loading...", message: "Loading...", ok: false },
-  ]);
+  const [matrixInput, setMatrixInput] = useState("[[1,2,3],[4,5,6]]");
+  const [degrees, setDegrees] = useState(90);
+  const [result, setResult] = useState<RotateResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetch(`${API_GO}/health`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [{ ...s[0], health: `${d.status} - ${d.service}`, ok: true }, s[1]]))
-      .catch(() => setServices((s) => [{ ...s[0], health: "Error", message: "Cannot connect", ok: false }, s[1]]));
+  const handleRotate = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
-    fetch(`${API_GO}/`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [{ ...s[0], message: d.message }, s[1]]))
-      .catch(() => {});
+    try {
+      const matrix = JSON.parse(matrixInput);
+      const res = await fetch(`${API_GO}/api/v1/matrix/rotate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matrix, degrees }),
+      });
 
-    fetch(`${API_EXPRESS}/health`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [s[0], { ...s[1], health: `${d.status} - ${d.service}`, ok: true }]))
-      .catch(() => setServices((s) => [s[0], { ...s[1], health: "Error", message: "Cannot connect", ok: false }]));
+      const data = await res.json();
 
-    fetch(`${API_EXPRESS}/`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [s[0], { ...s[1], message: d.message }]))
-      .catch(() => {});
-  }, []);
+      if (!res.ok) {
+        setError(data.error || "Unknown error");
+        return;
+      }
+
+      setResult(data.data);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Invalid JSON";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <main style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
-      <h1>Interseguro Challenge</h1>
-      <p style={{ color: "#666" }}>Microservicios — Go + Express</p>
-
-      {services.map((s) => (
-        <div
-          key={s.name}
-          style={{
-            padding: "1rem",
-            marginTop: "1rem",
-            border: `1px solid ${s.ok ? "#22c55e" : "#e5e7eb"}`,
-            borderRadius: "8px",
-            backgroundColor: s.ok ? "#f0fdf4" : "#fef2f2",
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: "1rem" }}>{s.name}</h2>
-          <p style={{ margin: "0.5rem 0 0", fontSize: "0.875rem" }}>
-            <strong>Health:</strong> {s.health}
-          </p>
-          <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem" }}>
-            <strong>Message:</strong> {s.message}
-          </p>
+    <div className="min-h-screen bg-white text-black">
+      <header className="border-b border-black">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+          <span className="text-lg font-bold tracking-tight">Interseguro</span>
+          <a href="/dashboard" className="text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-black">
+            Dashboard
+          </a>
         </div>
-      ))}
-    </main>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Matrix Rotation</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight">Probar API</h1>
+
+        <div className="mt-12 space-y-6">
+          <div>
+            <label className="block text-xs uppercase tracking-[0.2em] text-gray-500">
+              Matriz (JSON)
+            </label>
+            <textarea
+              value={matrixInput}
+              onChange={(e) => setMatrixInput(e.target.value)}
+              rows={3}
+              className="mt-2 w-full border border-gray-200 p-3 font-mono text-sm focus:border-black focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-[0.2em] text-gray-500">
+              Grados
+            </label>
+            <div className="mt-2 flex gap-2">
+              {[90, 180, 270].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDegrees(d)}
+                  className={`border px-4 py-2 text-sm ${
+                    degrees === d
+                      ? "border-black bg-black text-white"
+                      : "border-gray-200 text-gray-600 hover:border-black"
+                  }`}
+                >
+                  {d}°
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleRotate}
+            disabled={loading}
+            className="border border-black bg-black px-6 py-3 text-sm text-white uppercase tracking-[0.15em] hover:bg-gray-800 disabled:opacity-50"
+          >
+            {loading ? "Rotando..." : "Rotar"}
+          </button>
+
+          {error && (
+            <div className="border border-red-200 bg-red-50 p-4 font-mono text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {result && (
+            <div className="border border-gray-200 p-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Original</p>
+                  <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.original, null, 2)}</pre>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rotada ({result.degrees}°)</p>
+                  <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.rotated, null, 2)}</pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
