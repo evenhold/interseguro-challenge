@@ -89,8 +89,7 @@ export default function DashboardPage() {
                     s.ok ? "bg-green-500" : "bg-red-400"
                   }`}
                 />
-                <span className="text-2xl font-bold">{s.health}</span>
-                <span className="text-sm text-gray-400">{s.port}</span>
+                <span className="text-2xl font-bold">{s.health.toUpperCase()}</span>
               </div>
               <p className="mt-2 text-sm text-gray-600">{s.message}</p>
             </div>
