@@ -44,10 +44,10 @@ export function calculateStatistics(matrix: number[][]): MatrixStatistics {
   }
 
   const flat = flatten(matrix);
-  const sum = flat.reduce((acc, val) => acc + val, 0);
-  const max = Math.max(...flat);
-  const min = Math.min(...flat);
-  const average = sum / flat.length;
+  const sum = parseFloat(flat.reduce((acc, val) => acc + val, 0).toFixed(4));
+  const max = parseFloat(Math.max(...flat).toFixed(4));
+  const min = parseFloat(Math.min(...flat).toFixed(4));
+  const average = parseFloat((sum / flat.length).toFixed(4));
   const isDiagonal = checkDiagonal(matrix);
 
   return { max, min, average, sum, isDiagonal };

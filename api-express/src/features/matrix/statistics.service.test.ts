@@ -41,7 +41,7 @@ describe("calculateStatistics", () => {
     expect(stats.max).toBe(3);
     expect(stats.min).toBe(0);
     expect(stats.sum).toBe(6);
-    expect(stats.average).toBe(6 / 9);
+    expect(stats.average).toBe(0.6667);
     expect(stats.isDiagonal).toBe(true);
   });
 
