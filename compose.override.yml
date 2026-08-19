@@ -40,13 +40,15 @@ services:
       args:
         - NEXT_PUBLIC_API_GO_URL=http://localhost:3001
         - NEXT_PUBLIC_API_EXPRESS_URL=http://localhost:3002
-    command: node node_modules/.bin/next dev
+    command: pnpm dev
     volumes:
       - ./web:/app
       - /app/node_modules
       - /app/.next
     ports:
       - "3000:3000"
+    env_file:
+      - ./web/.env.local
     depends_on:
       - api-go
       - api-express
