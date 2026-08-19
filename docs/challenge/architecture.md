@@ -5,8 +5,8 @@
 Tres servicios independientes comunicándose por HTTP:
 
 ```
-Next.js (Frontend) → Go API (Fiber) → NestJS API (Node.js 24+)
-   Puerto 3001          Puerto 8080          Puerto 3000
+Next.js (Frontend) → Go API (Fiber) → Express API (Node.js 24+)
+   Puerto 3000          Puerto 8080          Puerto 3000
 ```
 
 ---
@@ -83,32 +83,34 @@ API NestJS
 
 ---
 
-## API NestJS (Node.js 24+) — Feature-Based
+## API Express (Node.js 24+) — Feature-Based
 
 ### Estructura
 
 ```
-api-nest/
+api-express/
 ├── src/
-│   ├── matrix/                        # Feature: operaciones con matrices
-│   │   ├── dto/
-│   │   │   ├── matrix-statistics.dto.ts
-│   │   │   └── matrix-response.dto.ts
-│   │   ├── matrix.controller.ts       # Endpoints HTTP
-│   │   ├── matrix.service.ts          # Lógica de estadísticas
-│   │   └── matrix.module.ts           # Registro del módulo
+│   ├── features/
+│   │   └── matrix/                        # Feature: estadísticas
+│   │       ├── statistics.service.ts       # Lógica: max, min, avg, sum, isDiagonal
+│   │       └── statistics.route.ts         # POST /api/v1/matrix/statistics
 │   │
-│   ├── common/
-│   │   └── filters/
-│   │       └── all-exceptions.filter.ts
+│   ├── middlewares/
+│   │   ├── error-handler.ts
+│   │   └── internal-auth.ts
 │   │
-│   ├── app.module.ts
-│   └── main.ts                        # Bootstrap + ValidationPipe
+│   ├── config/
+│   │   ├── env.ts
+│   │   ├── logger.ts
+│   │   ├── secrets.ts
+│   │   └── graceful-shutdown.ts
+│   │
+│   └── server.ts                          # Entry point
 │
 ├── Dockerfile
 ├── package.json
 ├── tsconfig.json
-└── nest-cli.json
+└── biome.json
 ```
 
 ### Endpoints
@@ -127,14 +129,16 @@ api-nest/
 
 ### Dependencias
 
-NestJS usa DI nativa por constructor:
+Express.js no usa DI nativa; las dependencias se resuelven manualmente:
 
 ```typescript
-@Controller("matrix")
-export class MatrixController {
-  constructor(private readonly matrixService: MatrixService) {}
-  // NestJS resuelve esto automáticamente
-}
+// En statistics.route.ts
+import { calculateStatistics } from "./statistics.service.js";
+
+router.post("/api/v1/matrix/statistics", internalAuth, (req, res) => {
+  const stats = calculateStatistics(req.body.matrix);
+  res.json({ data: stats });
+});
 ```
 
 ---
@@ -217,23 +221,24 @@ web/
 │  │   API Go (Fiber)                             │              │
 │  │   Puerto 8080                                │              │
 │  │                                              │              │
-│  │   POST /api/matrix/rotate                    │              │
+│  │   POST /api/v1/matrix/rotate                 │              │
+│  │   POST /api/v1/matrix/qr                     │              │
 │  │   ┌──────────────────────────────────────┐   │              │
 │  │   │ 1. Recibe matriz + degrees           │   │              │
 │  │   │ 2. Rotar matriz (Clean Architecture) │   │              │
-│  │   │ 3. Enviar rotada a NestJS            │───┼──────►       │
+│  │   │ 3. Enviar a Express para stats       │───┼──────►       │
 │  │   └──────────────────────────────────────┘   │              │
 │  │                                              │              │
 │  └──────────────────────────────────────────────┘              │
 │                                                                 │
 │  ┌──────────────────────────────────────────────┐              │
 │  │                                              │              │
-│  │   API NestJS (Node.js 24+)                   │              │
+│  │   API Express (Node.js 24+)                  │              │
 │  │   Puerto 3000                                │              │
 │  │                                              │              │
-│  │   POST /api/matrix/statistics                │              │
+│  │   POST /api/v1/matrix/statistics             │              │
 │  │   ┌──────────────────────────────────────┐   │              │
-│  │   │ 1. Recibe matriz rotada              │   │              │
+│  │   │ 1. Recibe matriz                     │   │              │
 │  │   │ 2. Calcular estadísticas             │   │              │
 │  │   │ 3. Retornar JSON con stats           │   │              │
 │  │   └──────────────────────────────────────┘   │              │
@@ -250,7 +255,7 @@ web/
 | Componente   | Tecnología              | Versión                  |
 | ------------ | ----------------------- | ------------------------ |
 | API 1        | Go + Fiber              | Go 1.22+                 |
-| API 2        | NestJS                  | Node.js 24+ / NestJS 11+ |
+| API 2        | Express                 | Node.js 24+ / Express v5 |
 | Frontend     | Next.js                 | Next.js 15+ (App Router) |
 | Comunicación | HTTP (REST)             | -                        |
 | Contenedores | Docker + Docker Compose | -                        |

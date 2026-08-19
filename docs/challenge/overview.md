@@ -25,14 +25,14 @@ matrices y calcular estadísticas, con un frontend para visualizar resultados.
 | 1.3 | Rotar la matriz           | Implementar rotación de 90°       |
 | 1.4 | Enviar resultado a NestJS | Comunicación HTTP entre servicios |
 
-### 2. API en Node.js (NestJS)
+### 2. API en Node.js (Express)
 
-| #   | Objetivo                  | Descripción                              |
-| --- | ------------------------- | ---------------------------------------- |
-| 2.1 | Crear API REST con NestJS | Usando **NestJS** con Node.js 24+        |
-| 2.2 | Recibir matriz rotada     | Datos enviados desde la API Go           |
-| 2.3 | Calcular estadísticas     | Máximo, mínimo, promedio, suma, diagonal |
-| 2.4 | Retornar resultados       | Respuesta JSON con las estadísticas      |
+| #   | Objetivo                    | Descripción                              |
+| --- | --------------------------- | ---------------------------------------- |
+| 2.1 | Crear API REST con Express  | Usando **Express** con Node.js 24+       |
+| 2.2 | Recibir matriz rotada       | Datos enviados desde la API Go           |
+| 2.3 | Calcular estadísticas       | Máximo, mínimo, promedio, suma, diagonal |
+| 2.4 | Retornar resultados         | Respuesta JSON con las estadísticas      |
 
 ### 3. Operaciones sobre la matriz
 
@@ -127,7 +127,7 @@ matrices y calcular estadísticas, con un frontend para visualizar resultados.
 | Componente   | Tecnología              | Versión                  |
 | ------------ | ----------------------- | ------------------------ |
 | API 1        | Go + Fiber              | Go 1.22+                 |
-| API 2        | NestJS                  | Node.js 24+ / NestJS 11+ |
+| API 2        | Express                 | Node.js 24+ / Express v5 |
 | Frontend     | Next.js                 | Next.js 15+ (App Router) |
 | Comunicación | HTTP (REST)             | -                        |
 | Contenedores | Docker + Docker Compose | -                        |
@@ -150,15 +150,15 @@ go-testing/
 │   ├── go.mod
 │   └── go.sum
 │
-├── api-nest/                   # API en NestJS
+├── api-express/                # API en Express.js
 │   ├── src/
-│   │   ├── matrix/
-│   │   │   ├── matrix.controller.ts
-│   │   │   ├── matrix.service.ts
-│   │   │   ├── matrix.module.ts
-│   │   │   └── dto/
-│   │   ├── app.module.ts
-│   │   └── main.ts
+│   │   ├── features/
+│   │   │   └── matrix/
+│   │   │       ├── statistics.service.ts
+│   │   │       └── statistics.route.ts
+│   │   ├── middlewares/
+│   │   ├── config/
+│   │   └── server.ts
 │   ├── Dockerfile
 │   ├── package.json
 │   └── tsconfig.json
@@ -173,6 +173,6 @@ go-testing/
 │   └── next.config.ts
 │
 ├── docs/                       # Documentación
-├── docker-compose.yml
+├── compose.yml
 └── README.md
 ```

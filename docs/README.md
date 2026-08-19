@@ -1,6 +1,6 @@
 # Documentación del Proyecto
 
-Reto técnico de Interseguro — Microservicios con Go y NestJS.
+Reto técnico de Interseguro — Microservicios con Go y Express.js.
 
 ---
 

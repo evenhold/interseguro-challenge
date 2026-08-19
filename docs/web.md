@@ -11,23 +11,49 @@ Puerto: `:3000`
 
 ## Rutas
 
-| Ruta         | Descripción                        |
-| ------------ | ---------------------------------- |
-| `/`          | Formulario de rotación de matrices |
-| `/dashboard` | Health status de servicios         |
+| Ruta         | Descripción                                   |
+| ------------ | --------------------------------------------- |
+| `/`          | Login + formulario de rotación/QR de matrices |
+| `/dashboard` | Health status de servicios                    |
 
-## `/` — Formulario de Rotación
+## `/` — Página Principal
+
+### Autenticación (JWT)
+
+- Formulario de login (`LoginForm.tsx`) con usuario y contraseña
+- Credenciales: `admin` / `matrix123`
+- Al hacer login, se almacena el JWT en `localStorage`
+- Header `Authorization: Bearer <jwt>` en todas las llamadas a la API
+
+### Formulario de Matrices
 
 - Textarea para ingresar matriz en JSON
-- Selector de grados (90°, 180°, 270°)
-- Botón "Rotar" que llama a `POST /api/v1/matrix/rotate`
-- Muestra resultado: original vs rotada + estadísticas
+- Botones de modo:
+  - **"Rotar"** → `POST /api/v1/matrix/rotate`
+  - **"QR"** → `POST /api/v1/matrix/qr`
+- Selector de grados (90°, 180°, 270°) — solo visible cuando no está en modo QR
+- Estado `activeOp` controla qué botón está activo (`"rotate"` | `"qr"` | `null`)
+- Se resetea a `null` cuando cambia la matriz o los grados
+
+### Resultado
+
+- **Rotación**: Muestra matriz original vs rotada + estadísticas
+- **QR**: Muestra Q (ortogonal) y R (triangular superior) + estadísticas de cada una
+- Grid visual interactivo (`MatrixGrid.tsx`) con celdas de tamaño dinámico
+
+### Interseguro Branding
+
+- Botones con degradado rosa/magenta (`.btn-interseguro`)
+- Logo en azul Interseguro (#0066FF)
+- Fuente Inter
+- Bordes cuadrados
 
 ## `/dashboard` — Health Status
 
 - Grid de cards con estado de cada servicio
 - Indicador verde/rojo por servicio
-- Health status + puerto de cada API
+- Health check público (sin autenticación)
+- Auto-refresh cada 30 segundos
 
 ## Desarrollo local
 
@@ -52,11 +78,16 @@ pnpm dev
 
 ```
 web/
-├── src/app/
-│   ├── page.tsx                             # Formulario de rotación
-│   ├── dashboard/page.tsx                   # Health status
-│   ├── layout.tsx
-│   └── globals.css                          # Tailwind CSS
+├── src/
+│   ├── app/
+│   │   ├── page.tsx                             # Login + formulario principal
+│   │   ├── dashboard/page.tsx                   # Health status
+│   │   ├── layout.tsx                           # Root layout
+│   │   └── globals.css                          # Tailwind CSS + Interseguro theme
+│   └── components/
+│       ├── LoginForm.tsx                        # Formulario de login
+│       └── MatrixGrid.tsx                       # Grid visual de matriz
+├── .env.local                                    # Variables de entorno
 ├── postcss.config.mjs
 ├── next.config.js
 ├── Dockerfile

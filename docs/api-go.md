@@ -8,19 +8,59 @@ Puerto: `:3001` (host) / `:8080` (container)
 - Fiber v2
 - Zap (logger)
 - godotenv
+- JWT (golang-jwt/v5)
 
 ## Endpoints
 
+### Público (sin autenticación)
+
+| Método | Ruta              | Descripción         |
+| ------ | ----------------- | ------------------- |
+| GET    | `/health`         | Estado del servicio |
+| GET    | `/`               | Hola mundo          |
+| POST   | `/api/v1/auth/login` | Login → retorna JWT |
+
+### Protegido con JWT
+
 | Método | Ruta                    | Descripción                      |
 | ------ | ----------------------- | -------------------------------- |
-| GET    | `/health`               | Estado del servicio              |
-| GET    | `/`                     | Hola mundo                       |
 | POST   | `/api/v1/matrix/rotate` | Rotar matriz + estadísticas      |
 | POST   | `/api/v1/matrix/qr`     | Factorización QR + estadísticas  |
+
+## `POST /api/v1/auth/login`
+
+Autentica al usuario y retorna un JWT.
+
+### Request Body
+
+```json
+{
+  "username": "admin",
+  "password": "matrix123"
+}
+```
+
+### Response 200
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresAt": "2024-12-20T10:00:00Z",
+  "user": "admin"
+}
+```
+
+### Response 401
+
+```json
+{ "error": "invalid credentials" }
+```
 
 ## `POST /api/v1/matrix/rotate`
 
 Rota una matriz de enteros y retorna la matriz rotada con estadísticas calculadas por api-express.
+
+> **Requiere:** Header `Authorization: Bearer <jwt>`
 
 ### Request Body
 
@@ -72,6 +112,12 @@ Rota una matriz de enteros y retorna la matriz rotada con estadísticas calculad
 { "error": "degrees must be 90, 180 or 270" }
 ```
 
+### Response 401
+
+```json
+{ "error": "Authorization header required" }
+```
+
 ### Algoritmo de rotación
 
 | Grados | Operación                                   |
@@ -89,6 +135,8 @@ Rota una matriz de enteros y retorna la matriz rotada con estadísticas calculad
 ## `POST /api/v1/matrix/qr`
 
 Calcula la factorización QR de una matriz y retorna Q, R con estadísticas de cada una.
+
+> **Requiere:** Header `Authorization: Bearer <jwt>`
 
 ### Request Body
 
@@ -157,29 +205,40 @@ Complejidad: O(m × n²)
 ## Ejemplos curl
 
 ```bash
-# Rotar 90°
+# Login
+curl -X POST http://localhost:3001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"matrix123"}'
+
+# Rotar 90° (con JWT)
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
 curl -X POST http://localhost:3001/api/v1/matrix/rotate \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"matrix": [[1,2,3],[4,5,6]], "degrees": 90}'
 
 # Rotar 180°
 curl -X POST http://localhost:3001/api/v1/matrix/rotate \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"matrix": [[1,2,3],[4,5,6],[7,8,9]], "degrees": 180}'
 
 # Rotar 270°
 curl -X POST http://localhost:3001/api/v1/matrix/rotate \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"matrix": [[1,2,3],[4,5,6]], "degrees": 270}'
 
 # Factorización QR
 curl -X POST http://localhost:3001/api/v1/matrix/qr \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"matrix": [[1,2,3],[4,5,6]]}'
 
 # QR con matriz cuadrada
 curl -X POST http://localhost:3001/api/v1/matrix/qr \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"matrix": [[1,1],[1,-1]]}'
 ```
 
@@ -192,24 +251,36 @@ cp .env.example .env
 # → http://localhost:8080
 ```
 
+## Tests
+
+```bash
+cd api-go
+/usr/local/go/bin/go test ./... -v
+```
+
 ## Estructura
 
 ```
 api-go/
 ├── cmd/api/main.go                         # Composition root (DI)
 ├── internal/
-│   ├── config/                             # Env + Logger
+│   ├── config/env.go                       # Env + Config struct
 │   ├── domain/matrix.go                    # Entidades puras
+│   ├── domain/matrix_test.go               # Tests de dominio
 │   ├── usecase/matrix_usecase.go           # Lógica de rotación + QR
 │   ├── usecase/matrix_usecase_test.go      # Tests unitarios
 │   ├── infrastructure/express_client.go    # Cliente HTTP → api-express
-│   ├── delivery/http/                      # Handlers + routes
-│   │   ├── matrix_handler.go
+│   ├── delivery/http/
+│   │   ├── auth_handler.go                 # POST /auth/login
+│   │   ├── matrix_handler.go               # Handlers de matriz
 │   │   ├── matrix_handler_test.go          # Tests HTTP
-│   │   └── routes.go
-│   ├── handlers/                           # Health endpoints
-│   └── middlewares/                         # Error handler
+│   │   └── routes.go                       # Registro de rutas + JWT
+│   └── middlewares/
+│       ├── auth.go                         # JWT middleware
+│       ├── auth_test.go                    # Tests de JWT
+│       └── errors.go                       # Error handler
 ├── pkg/dto/                                # Request/response DTOs
 ├── Dockerfile
-└── Makefile
+├── go.mod
+└── go.sum
 ```
