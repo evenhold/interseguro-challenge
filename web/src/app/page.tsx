@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MatrixGrid from "@/components/MatrixGrid";
+import LoginForm from "@/components/LoginForm";
 
 const API_GO = process.env.NEXT_PUBLIC_API_GO_URL || "http://localhost:3001";
 
@@ -28,6 +29,8 @@ interface QRResult {
 }
 
 export default function Home() {
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<string | null>(null);
   const [matrixInput, setMatrixInput] = useState("[[1,2,3],[4,5,6]]");
   const [degrees, setDegrees] = useState(90);
   const [activeOp, setActiveOp] = useState<"rotate" | "qr" | null>(null);
@@ -35,6 +38,32 @@ export default function Home() {
   const [qrResult, setQRResult] = useState<QRResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Check for saved token on mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem("jwt_token");
+    const savedUser = localStorage.getItem("jwt_user");
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setUser(savedUser);
+    }
+  }, []);
+
+  const handleLogin = (newToken: string, newUser: string) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem("jwt_token", newToken);
+    localStorage.setItem("jwt_user", newUser);
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("jwt_token");
+    localStorage.removeItem("jwt_user");
+    setRotateResult(null);
+    setQRResult(null);
+  };
 
   const handleClear = () => {
     setMatrixInput("[[1,2,3],[4,5,6]]");
@@ -71,13 +100,21 @@ export default function Home() {
       const matrix = JSON.parse(matrixInput);
       const res = await fetch(`${API_GO}/api/v1/matrix/rotate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ matrix, degrees }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          handleLogout();
+          setError("Session expired. Please login again.");
+          return;
+        }
         setError(data.error || "Unknown error");
         return;
       }
@@ -101,13 +138,21 @@ export default function Home() {
       const matrix = JSON.parse(matrixInput);
       const res = await fetch(`${API_GO}/api/v1/matrix/qr`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ matrix }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          handleLogout();
+          setError("Session expired. Please login again.");
+          return;
+        }
         setError(data.error || "Unknown error");
         return;
       }
@@ -121,6 +166,11 @@ export default function Home() {
     }
   };
 
+  // Show login if no token
+  if (!token) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 shadow-sm">
@@ -128,15 +178,24 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-primary">Interseguro</span>
           </div>
-          <a href="/dashboard" className="btn-interseguro text-sm">
-            Dashboard
-          </a>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">Hola, {user}</span>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all"
+            >
+              Salir
+            </button>
+            <a href="/dashboard" className="btn-interseguro text-sm">
+              Dashboard
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-12">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Matrix Operations</p>
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-interseguro">Matrix Operations</p>
           <h1 className="mt-2 text-2xl font-bold text-navy">Probar API</h1>
 
           <div className="mt-8 space-y-6">
@@ -151,7 +210,7 @@ export default function Home() {
                   setActiveOp(null);
                 }}
                 rows={3}
-                className="mt-2 w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:border-primary focus:ring-2 focus:ring-primary-light focus:outline-none transition-all"
+                className="mt-2 w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:border-interseguro focus:ring-2 focus:ring-interseguro/20 focus:outline-none transition-all"
               />
               <div className="mt-3 space-y-1">
                 <p className="text-xs text-gray-500">
@@ -179,11 +238,11 @@ export default function Home() {
                         setDegrees(d);
                         setActiveOp(null);
                       }}
-                    className={`px-4 py-2 text-sm font-medium transition-all ${
-                      degrees === d
-                        ? "bg-primary text-white shadow-sm"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                      className={`px-4 py-2 text-sm font-medium transition-all ${
+                        degrees === d
+                          ? "bg-interseguro text-white shadow-sm"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     >
                       {d}°
                     </button>

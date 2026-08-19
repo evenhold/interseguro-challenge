@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/user/interseguro-challenge-api-go/internal/config"
 	deliveryHTTP "github.com/user/interseguro-challenge-api-go/internal/delivery/http"
-	"github.com/user/interseguro-challenge-api-go/internal/handlers"
 	"github.com/user/interseguro-challenge-api-go/internal/infrastructure"
 	"github.com/user/interseguro-challenge-api-go/internal/middlewares"
 	"github.com/user/interseguro-challenge-api-go/internal/usecase"
@@ -46,11 +45,7 @@ func main() {
 		return err
 	})
 
-	// Health routes (existing)
-	app.Get("/health", handlers.Health)
-	app.Get("/", handlers.Hello)
-
-	// Matrix rotation routes (new — Clean Architecture)
+	// Matrix rotation routes (Clean Architecture)
 	matrixUsecase := usecase.NewMatrixUsecase()
 
 	// Express client para estadísticas
@@ -58,10 +53,16 @@ func main() {
 	if expressURL == "" {
 		expressURL = "http://api-express:3000"
 	}
-	expressClient := infrastructure.NewExpressClient(expressURL)
+	expressClient := infrastructure.NewExpressClient(expressURL, cfg.InternalSecret)
 
+	// Auth handler
+	authHandler := deliveryHTTP.NewAuthHandler(cfg)
+
+	// Matrix handler
 	matrixHandler := deliveryHTTP.NewMatrixHandler(matrixUsecase, expressClient)
-	deliveryHTTP.RegisterRoutes(app, matrixHandler)
+
+	// Register routes
+	deliveryHTTP.RegisterRoutes(app, matrixHandler, authHandler, cfg)
 
 	// 404 handler
 	app.Use(middlewares.NotFoundHandler)

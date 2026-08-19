@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { AppError } from "../../middlewares/error-handler.js";
+import { internalAuth } from "../../middlewares/internal-auth.js";
 import { calculateStatistics, type MatrixStatistics } from "./statistics.service.js";
 
 const router: Router = Router();
@@ -15,6 +16,7 @@ interface StatisticsResponse {
 
 router.post(
   "/api/v1/matrix/statistics",
+  internalAuth,
   (req: Request, res: Response<StatisticsResponse>) => {
     const { matrix } = req.body as StatisticsRequest;
 

@@ -19,17 +19,19 @@ type MatrixStatistics struct {
 
 // ExpressClient es el cliente HTTP para comunicarse con api-express.
 type ExpressClient struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL        string
+	httpClient     *http.Client
+	internalSecret string
 }
 
 // NewExpressClient crea una nueva instancia de ExpressClient.
-func NewExpressClient(baseURL string) *ExpressClient {
+func NewExpressClient(baseURL string, internalSecret string) *ExpressClient {
 	return &ExpressClient{
 		baseURL: baseURL,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
+		internalSecret: internalSecret,
 	}
 }
 
@@ -51,7 +53,15 @@ func (c *ExpressClient) GetStatistics(matrix [][]int) (*MatrixStatistics, error)
 	}
 
 	url := fmt.Sprintf("%s/api/v1/matrix/statistics", c.baseURL)
-	resp, err := c.httpClient.Post(url, "application/json", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Internal-Secret", c.internalSecret)
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call api-express: %w", err)
 	}
