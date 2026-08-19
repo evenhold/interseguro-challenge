@@ -42,7 +42,8 @@ services:
         - NEXT_PUBLIC_API_EXPRESS_URL=http://localhost:3002
     command: pnpm dev
     volumes:
-      - ./web:/app
+      - ./web/src:/app/src
+      - /app/.next
       - /app/node_modules
     ports:
       - "3000:3000"
