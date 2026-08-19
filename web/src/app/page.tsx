@@ -4,10 +4,19 @@ import { useState } from "react";
 
 const API_GO = process.env.NEXT_PUBLIC_API_GO_URL || "http://localhost:3001";
 
+interface Statistics {
+  max: number;
+  min: number;
+  average: number;
+  sum: number;
+  isDiagonal: boolean;
+}
+
 interface RotateResult {
   original: number[][];
   rotated: number[][];
   degrees: number;
+  statistics: Statistics;
 }
 
 export default function Home() {
@@ -110,18 +119,46 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="border border-gray-200 p-6">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Original</p>
-                  <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.original, null, 2)}</pre>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rotada ({result.degrees}°)</p>
-                  <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.rotated, null, 2)}</pre>
+            <>
+              <div className="border border-gray-200 p-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Original</p>
+                    <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.original, null, 2)}</pre>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rotada ({result.degrees}°)</p>
+                    <pre className="mt-2 font-mono text-sm">{JSON.stringify(result.rotated, null, 2)}</pre>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <div className="border border-gray-200 p-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Estadísticas</p>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                  <div>
+                    <p className="text-xs text-gray-400">Max</p>
+                    <p className="text-2xl font-bold">{result.statistics.max}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Min</p>
+                    <p className="text-2xl font-bold">{result.statistics.min}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Promedio</p>
+                    <p className="text-2xl font-bold">{result.statistics.average}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Suma</p>
+                    <p className="text-2xl font-bold">{result.statistics.sum}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Diagonal</p>
+                    <p className="text-2xl font-bold">{result.statistics.isDiagonal ? "Sí" : "No"}</p>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </main>
