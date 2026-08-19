@@ -30,7 +30,7 @@ interface QRResult {
 export default function Home() {
   const [matrixInput, setMatrixInput] = useState("[[1,2,3],[4,5,6]]");
   const [degrees, setDegrees] = useState(90);
-  const [activeOp, setActiveOp] = useState<"rotate" | "qr">("rotate");
+  const [activeOp, setActiveOp] = useState<"rotate" | "qr" | null>(null);
   const [rotateResult, setRotateResult] = useState<RotateResult | null>(null);
   const [qrResult, setQRResult] = useState<QRResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -118,13 +118,27 @@ export default function Home() {
             </label>
             <textarea
               value={matrixInput}
-              onChange={(e) => setMatrixInput(e.target.value)}
+              onChange={(e) => {
+                setMatrixInput(e.target.value);
+                setActiveOp(null);
+              }}
               rows={3}
               className="mt-2 w-full border border-gray-200 p-3 font-mono text-sm focus:border-black focus:outline-none"
             />
+            <div className="mt-3 space-y-1">
+              <p className="text-xs text-gray-400">
+                Ejemplos: [[1,2],[3,4]] (2×2) — [[1,2,3],[4,5,6]] (2×3) — [[1,2,3],[4,5,6],[7,8,9]] (3×3)
+              </p>
+              <p className="text-xs text-gray-400">
+                <span className="font-medium">Rotar</span>: gira la matriz 90°, 180° o 270°
+              </p>
+              <p className="text-xs text-gray-400">
+                <span className="font-medium">Factorización QR</span>: descompone en matrices Q (ortogonal) y R (triangular superior)
+              </p>
+            </div>
           </div>
 
-          {activeOp === "rotate" && (
+          {activeOp !== "qr" && (
             <div>
               <label className="block text-xs uppercase tracking-[0.2em] text-gray-500">
                 Grados
@@ -133,7 +147,10 @@ export default function Home() {
                 {[90, 180, 270].map((d) => (
                   <button
                     key={d}
-                    onClick={() => setDegrees(d)}
+                    onClick={() => {
+                      setDegrees(d);
+                      setActiveOp(null);
+                    }}
                     className={`border px-4 py-2 text-sm ${
                       degrees === d
                         ? "border-black bg-black text-white"
@@ -147,14 +164,16 @@ export default function Home() {
             </div>
           )}
 
+          <div className="border-t border-gray-100" />
+
           <div className="flex gap-3">
             <button
               onClick={handleRotate}
               disabled={loading}
-              className={`border px-6 py-3 text-sm uppercase tracking-[0.15em] disabled:opacity-50 ${
+              className={`border-2 px-6 py-3.5 text-sm font-medium uppercase tracking-[0.15em] transition-colors duration-150 disabled:opacity-50 ${
                 activeOp === "rotate"
                   ? "border-black bg-black text-white"
-                  : "border-gray-300 text-gray-600 hover:border-black"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-100"
               }`}
             >
               {loading && activeOp === "rotate" ? "Procesando..." : "Rotar"}
@@ -162,10 +181,10 @@ export default function Home() {
             <button
               onClick={handleQR}
               disabled={loading}
-              className={`border px-6 py-3 text-sm uppercase tracking-[0.15em] disabled:opacity-50 ${
+              className={`border-2 px-6 py-3.5 text-sm font-medium uppercase tracking-[0.15em] transition-colors duration-150 disabled:opacity-50 ${
                 activeOp === "qr"
                   ? "border-black bg-black text-white"
-                  : "border-gray-300 text-gray-600 hover:border-black"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-100"
               }`}
             >
               {loading && activeOp === "qr" ? "Procesando..." : "Factorización QR"}
