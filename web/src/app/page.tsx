@@ -36,6 +36,31 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const handleClear = () => {
+    setMatrixInput("[[1,2,3],[4,5,6]]");
+    setDegrees(90);
+    setActiveOp(null);
+    setRotateResult(null);
+    setQRResult(null);
+    setError(null);
+  };
+
+  const handleExample = () => {
+    const examples = [
+      "[[1,2],[3,4]]",
+      "[[1,2,3],[4,5,6]]",
+      "[[1,2,3],[4,5,6],[7,8,9]]",
+      "[[5,6,1],[4,7,3],[2,8,9]]",
+      "[[1,0,0],[0,2,0],[0,0,3]]",
+    ];
+    const random = examples[Math.floor(Math.random() * examples.length)];
+    setMatrixInput(random);
+    setActiveOp(null);
+    setRotateResult(null);
+    setQRResult(null);
+    setError(null);
+  };
+
   const handleRotate = async () => {
     setLoading(true);
     setError(null);
@@ -97,228 +122,238 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <header className="border-b border-black">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <span className="text-lg font-bold tracking-tight">Interseguro</span>
-          <a href="/dashboard" className="text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-black">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold text-primary">Interseguro</span>
+          </div>
+          <a href="/dashboard" className="btn-interseguro text-sm">
             Dashboard
           </a>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Matrix Operations</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">Probar API</h1>
+      <main className="mx-auto max-w-4xl px-6 py-12">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Matrix Operations</p>
+          <h1 className="mt-2 text-2xl font-bold text-navy">Probar API</h1>
 
-        <div className="mt-12 space-y-6">
-          <div>
-            <label className="block text-xs uppercase tracking-[0.2em] text-gray-500">
-              Matriz (JSON)
-            </label>
-            <textarea
-              value={matrixInput}
-              onChange={(e) => {
-                setMatrixInput(e.target.value);
-                setActiveOp(null);
-              }}
-              rows={3}
-              className="mt-2 w-full border border-gray-200 p-3 font-mono text-sm focus:border-black focus:outline-none"
-            />
-            <div className="mt-3 space-y-1">
-              <p className="text-xs text-gray-400">
-                Ejemplos: [[1,2],[3,4]] (2×2) — [[1,2,3],[4,5,6]] (2×3) — [[1,2,3],[4,5,6],[7,8,9]] (3×3)
-              </p>
-              <p className="text-xs text-gray-400">
-                <span className="font-medium">Rotar</span>: gira la matriz 90°, 180° o 270°
-              </p>
-              <p className="text-xs text-gray-400">
-                <span className="font-medium">Factorización QR</span>: descompone en matrices Q (ortogonal) y R (triangular superior)
-              </p>
-            </div>
-          </div>
-
-          {activeOp !== "qr" && (
+          <div className="mt-8 space-y-6">
             <div>
-              <label className="block text-xs uppercase tracking-[0.2em] text-gray-500">
-                Grados
+              <label className="block text-sm font-medium text-gray-700">
+                Matriz (JSON)
               </label>
-              <div className="mt-2 flex gap-2">
-                {[90, 180, 270].map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => {
-                      setDegrees(d);
-                      setActiveOp(null);
-                    }}
-                    className={`border px-4 py-2 text-sm ${
+              <textarea
+                value={matrixInput}
+                onChange={(e) => {
+                  setMatrixInput(e.target.value);
+                  setActiveOp(null);
+                }}
+                rows={3}
+                className="mt-2 w-full border border-gray-300 rounded-lg p-3 font-mono text-sm focus:border-primary focus:ring-2 focus:ring-primary-light focus:outline-none transition-all"
+              />
+              <div className="mt-3 space-y-1">
+                <p className="text-xs text-gray-500">
+                  Ejemplos: [[1,2],[3,4]] (2×2) — [[1,2,3],[4,5,6]] (2×3) — [[1,2,3],[4,5,6],[7,8,9]] (3×3)
+                </p>
+                <p className="text-xs text-gray-500">
+                  <span className="font-semibold text-gray-700">Rotar</span>: gira la matriz 90°, 180° o 270°
+                </p>
+                <p className="text-xs text-gray-500">
+                  <span className="font-semibold text-gray-700">Factorización QR</span>: descompone en matrices Q (ortogonal) y R (triangular superior)
+                </p>
+              </div>
+            </div>
+
+            {activeOp !== "qr" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Grados
+                </label>
+                <div className="mt-2 flex gap-2">
+                  {[90, 180, 270].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => {
+                        setDegrees(d);
+                        setActiveOp(null);
+                      }}
+                    className={`px-4 py-2 text-sm font-medium transition-all ${
                       degrees === d
-                        ? "border-black bg-black text-white"
-                        : "border-gray-200 text-gray-600 hover:border-black"
+                        ? "bg-primary text-white shadow-sm"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
-                  >
-                    {d}°
-                  </button>
-                ))}
+                    >
+                      {d}°
+                    </button>
+                  ))}
+                </div>
               </div>
+            )}
+
+            <div className="border-t border-gray-100" />
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleRotate}
+                disabled={loading}
+                className={`btn-interseguro ${activeOp === "rotate" ? "ring-2 ring-interseguro-light ring-offset-2" : ""}`}
+              >
+                {loading && activeOp === "rotate" ? "Procesando..." : "Rotar"}
+              </button>
+              <button
+                onClick={handleQR}
+                disabled={loading}
+                className={`btn-interseguro ${activeOp === "qr" ? "ring-2 ring-interseguro-light ring-offset-2" : ""}`}
+              >
+                {loading && activeOp === "qr" ? "Procesando..." : "Factorización QR"}
+              </button>
+              <button
+                onClick={handleExample}
+                disabled={loading}
+                className="px-5 py-3 text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                Ejemplo
+              </button>
+              <button
+                onClick={handleClear}
+                disabled={loading}
+                className="px-5 py-3 text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                Limpiar
+              </button>
             </div>
-          )}
 
-          <div className="border-t border-gray-100" />
+            {error && (
+              <div className="border border-danger/20 bg-danger/5 p-4 rounded-lg text-sm text-danger">
+                {error}
+              </div>
+            )}
 
-          <div className="flex gap-3">
-            <button
-              onClick={handleRotate}
-              disabled={loading}
-              className={`border-2 px-6 py-3.5 text-sm font-medium uppercase tracking-[0.15em] transition-colors duration-150 disabled:opacity-50 ${
-                activeOp === "rotate"
-                  ? "border-black bg-black text-white"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              {loading && activeOp === "rotate" ? "Procesando..." : "Rotar"}
-            </button>
-            <button
-              onClick={handleQR}
-              disabled={loading}
-              className={`border-2 px-6 py-3.5 text-sm font-medium uppercase tracking-[0.15em] transition-colors duration-150 disabled:opacity-50 ${
-                activeOp === "qr"
-                  ? "border-black bg-black text-white"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              {loading && activeOp === "qr" ? "Procesando..." : "Factorización QR"}
-            </button>
+            {/* Resultado de Rotación */}
+            {rotateResult && (
+              <>
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Original</p>
+                      <div className="mt-3">
+                        <MatrixGrid matrix={rotateResult.original} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Rotada ({rotateResult.degrees}°)</p>
+                      <div className="mt-3">
+                        <MatrixGrid matrix={rotateResult.rotated} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Estadísticas</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                    <div>
+                      <p className="text-xs text-gray-500">Max</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.max}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Min</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.min}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Promedio</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.average.toFixed(3)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Suma</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.sum}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Diagonal</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.isDiagonal ? "Sí" : "No"}</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Resultado de QR */}
+            {qrResult && (
+              <>
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Matrices Q y R</p>
+                  <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Q (Ortogonal)</p>
+                      <div className="mt-3">
+                        <MatrixGrid matrix={qrResult.q.map(row => row.map(v => Math.round(v * 10000) / 10000))} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">R (Triangular Superior)</p>
+                      <div className="mt-3">
+                        <MatrixGrid matrix={qrResult.r.map(row => row.map(v => Math.round(v * 10000) / 10000))} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Estadísticas Q</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                    <div>
+                      <p className="text-xs text-gray-500">Max</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.max}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Min</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.min}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Promedio</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.average.toFixed(3)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Suma</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.sum}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Diagonal</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.isDiagonal ? "Sí" : "No"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Estadísticas R</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                    <div>
+                      <p className="text-xs text-gray-500">Max</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.max}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Min</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.min}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Promedio</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.average.toFixed(3)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Suma</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.sum}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Diagonal</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.isDiagonal ? "Sí" : "No"}</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-
-          {error && (
-            <div className="border border-red-200 bg-red-50 p-4 font-mono text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          {/* Resultado de Rotación */}
-          {rotateResult && (
-            <>
-              <div className="border border-gray-200 p-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Original</p>
-                    <div className="mt-2">
-                      <MatrixGrid matrix={rotateResult.original} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rotada ({rotateResult.degrees}°)</p>
-                    <div className="mt-2">
-                      <MatrixGrid matrix={rotateResult.rotated} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Estadísticas</p>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                  <div>
-                    <p className="text-xs text-gray-400">Max</p>
-                    <p className="text-2xl font-bold">{rotateResult.statistics.max}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Min</p>
-                    <p className="text-2xl font-bold">{rotateResult.statistics.min}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Promedio</p>
-                    <p className="text-2xl font-bold">{rotateResult.statistics.average.toFixed(3)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Suma</p>
-                    <p className="text-2xl font-bold">{rotateResult.statistics.sum}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Diagonal</p>
-                    <p className="text-2xl font-bold">{rotateResult.statistics.isDiagonal ? "Sí" : "No"}</p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Resultado de QR */}
-          {qrResult && (
-            <>
-              <div className="border border-gray-200 p-6">
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Matrices Q y R</p>
-                <div className="mt-4 grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Q (Ortogonal)</p>
-                    <div className="mt-2">
-                      <MatrixGrid matrix={qrResult.q.map(row => row.map(v => Math.round(v * 10000) / 10000))} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-400">R (Triangular Superior)</p>
-                    <div className="mt-2">
-                      <MatrixGrid matrix={qrResult.r.map(row => row.map(v => Math.round(v * 10000) / 10000))} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Estadísticas Q</p>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                  <div>
-                    <p className="text-xs text-gray-400">Max</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.q.max}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Min</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.q.min}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Promedio</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.q.average.toFixed(3)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Suma</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.q.sum}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Diagonal</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.q.isDiagonal ? "Sí" : "No"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border border-gray-200 p-6">
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Estadísticas R</p>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                  <div>
-                    <p className="text-xs text-gray-400">Max</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.r.max}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Min</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.r.min}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Promedio</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.r.average.toFixed(3)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Suma</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.r.sum}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Diagonal</p>
-                    <p className="text-2xl font-bold">{qrResult.statistics.r.isDiagonal ? "Sí" : "No"}</p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </main>
     </div>

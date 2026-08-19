@@ -11,89 +11,120 @@ interface ServiceStatus {
   health: string;
   message: string;
   ok: boolean;
+  lastChecked: string;
+  responseTime: number;
 }
 
 export default function DashboardPage() {
   const [services, setServices] = useState<ServiceStatus[]>([
-    { name: "API Go", port: ":3001", health: "—", message: "Loading...", ok: false },
-    { name: "API Express", port: ":3002", health: "—", message: "Loading...", ok: false },
+    { name: "API Go", port: ":3001", health: "—", message: "Loading...", ok: false, lastChecked: "—", responseTime: 0 },
+    { name: "API Express", port: ":3002", health: "—", message: "Loading...", ok: false, lastChecked: "—", responseTime: 0 },
   ]);
 
+  const checkHealth = async () => {
+    const now = new Date().toLocaleTimeString();
+
+    // Check API Go
+    const goStart = Date.now();
+    try {
+      const r = await fetch(`${API_GO}/health`);
+      const d = await r.json();
+      const goTime = Date.now() - goStart;
+      setServices((s) => [
+        { ...s[0], health: d.status, message: d.service, ok: true, lastChecked: now, responseTime: goTime },
+        s[1],
+      ]);
+    } catch {
+      setServices((s) => [
+        { ...s[0], health: "error", message: "Cannot connect", ok: false, lastChecked: now, responseTime: 0 },
+        s[1],
+      ]);
+    }
+
+    // Check API Express
+    const expressStart = Date.now();
+    try {
+      const r = await fetch(`${API_EXPRESS}/health`);
+      const d = await r.json();
+      const expressTime = Date.now() - expressStart;
+      setServices((s) => [
+        s[0],
+        { ...s[1], health: d.status, message: d.service, ok: true, lastChecked: now, responseTime: expressTime },
+      ]);
+    } catch {
+      setServices((s) => [
+        s[0],
+        { ...s[1], health: "error", message: "Cannot connect", ok: false, lastChecked: now, responseTime: 0 },
+      ]);
+    }
+  };
+
   useEffect(() => {
-    fetch(`${API_GO}/health`)
-      .then((r) => r.json())
-      .then((d) =>
-        setServices((s) => [
-          { ...s[0], health: d.status, message: d.service, ok: true },
-          s[1],
-        ])
-      )
-      .catch(() =>
-        setServices((s) => [
-          { ...s[0], health: "error", message: "Cannot connect", ok: false },
-          s[1],
-        ])
-      );
-
-    fetch(`${API_GO}/`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [{ ...s[0], message: d.message }, s[1]]))
-      .catch(() => {});
-
-    fetch(`${API_EXPRESS}/health`)
-      .then((r) => r.json())
-      .then((d) =>
-        setServices((s) => [
-          s[0],
-          { ...s[1], health: d.status, message: d.service, ok: true },
-        ])
-      )
-      .catch(() =>
-        setServices((s) => [
-          s[0],
-          { ...s[1], health: "error", message: "Cannot connect", ok: false },
-        ])
-      );
-
-    fetch(`${API_EXPRESS}/`)
-      .then((r) => r.json())
-      .then((d) => setServices((s) => [s[0], { ...s[1], message: d.message }]))
-      .catch(() => {});
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <header className="border-b border-black">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <span className="text-lg font-bold tracking-tight">Interseguro</span>
-          <a href="/" className="text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-black">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold text-primary">Interseguro</span>
+          </div>
+          <a href="/" className="btn-interseguro text-sm">
             Matrix
           </a>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Servicios</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">Dashboard</h1>
-
-        <div className="mt-12 grid gap-px sm:grid-cols-2">
-          {services.map((s) => (
-            <div
-              key={s.name}
-              className="border border-gray-200 p-6"
-            >
-              <p className="text-xs uppercase tracking-[0.2em] text-gray-500">{s.name}</p>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full ${
-                    s.ok ? "bg-green-500" : "bg-red-400"
-                  }`}
-                />
-                <span className="text-2xl font-bold">{s.health.toUpperCase()}</span>
-              </div>
-              <p className="mt-2 text-sm text-gray-600">{s.message}</p>
+      <main className="mx-auto max-w-4xl px-6 py-12">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-interseguro">Servicios</p>
+              <h1 className="mt-2 text-2xl font-bold text-navy">Dashboard</h1>
             </div>
-          ))}
+            <button
+              onClick={checkHealth}
+              className="btn-interseguro text-sm"
+            >
+              Actualizar
+            </button>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {services.map((s) => (
+              <div
+                key={s.name}
+                className="border border-gray-200 rounded-lg p-6 bg-gray-50 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{s.name}</p>
+                  <span className="text-xs text-gray-400">{s.port}</span>
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span
+                    className={`inline-block h-2.5 w-2.5 rounded-full ${
+                      s.ok ? "bg-success" : "bg-danger"
+                    }`}
+                  />
+                  <span className="text-xl font-bold text-navy">{s.health.toUpperCase()}</span>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">{s.message}</p>
+                <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between text-xs text-gray-400">
+                  <span>Última verificación: {s.lastChecked}</span>
+                  <span>{s.responseTime > 0 ? `${s.responseTime}ms` : "—"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-xs text-gray-500">
+              Los servicios se verifican automáticamente cada 30 segundos. Haz clic en &quot;Actualizar&quot; para verificar ahora.
+            </p>
+          </div>
         </div>
       </main>
     </div>

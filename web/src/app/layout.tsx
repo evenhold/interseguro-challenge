@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Interseguro Challenge",
-  description: "Microservicios - Go + Express",
+  title: "Interseguro | Matrix Operations",
+  description: "Technical Challenge - Matrix Rotation & QR Factorization",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className="bg-white text-gray-800">{children}</body>
     </html>
   );
 }
