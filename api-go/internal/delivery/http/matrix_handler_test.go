@@ -6,11 +6,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/user/interseguro-challenge-api-go/internal/config"
 	"github.com/user/interseguro-challenge-api-go/internal/infrastructure"
 	"github.com/user/interseguro-challenge-api-go/internal/usecase"
 )
+
+const testJWTSecret = "test-secret"
 
 // mockExpressServer levanta un servidor HTTP que simula api-express.
 func mockExpressServer() *httptest.Server {
@@ -27,14 +32,39 @@ func mockExpressServer() *httptest.Server {
 	}))
 }
 
+func testConfig() *config.Config {
+	return &config.Config{
+		Port:           "8080",
+		Env:            "test",
+		Debug:          false,
+		JWTSecret:      testJWTSecret,
+		JWTExpiryHours: 1,
+		AdminUser:      "admin",
+		AdminPass:      "matrix123",
+		InternalSecret: "test-internal-secret",
+	}
+}
+
+func generateTestToken() string {
+	claims := jwt.MapClaims{
+		"user": "admin",
+		"exp":  time.Now().Add(1 * time.Hour).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := token.SignedString([]byte(testJWTSecret))
+	return tokenString
+}
+
 func setupTestApp() (*fiber.App, *httptest.Server) {
 	mock := mockExpressServer()
-	client := infrastructure.NewExpressClient(mock.URL)
+	client := infrastructure.NewExpressClient(mock.URL, "test-internal-secret")
+	cfg := testConfig()
 
 	app := fiber.New()
 	uc := usecase.NewMatrixUsecase()
-	handler := NewMatrixHandler(uc, client)
-	RegisterRoutes(app, handler)
+	matrixHandler := NewMatrixHandler(uc, client)
+	authHandler := NewAuthHandler(cfg)
+	RegisterRoutes(app, matrixHandler, authHandler, cfg)
 	return app, mock
 }
 
@@ -45,6 +75,7 @@ func TestRotateHandler90(t *testing.T) {
 	body := `{"matrix": [[1,2,3],[4,5,6]], "degrees": 90}`
 	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+generateTestToken())
 
 	resp, err := app.Test(req)
 	if err != nil {
@@ -70,6 +101,7 @@ func TestRotateHandler180(t *testing.T) {
 	body := `{"matrix": [[1,2],[3,4]], "degrees": 180}`
 	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+generateTestToken())
 
 	resp, err := app.Test(req)
 	if err != nil {
@@ -88,6 +120,7 @@ func TestRotateHandlerInvalidDegrees(t *testing.T) {
 	body := `{"matrix": [[1,2],[3,4]], "degrees": 45}`
 	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+generateTestToken())
 
 	resp, err := app.Test(req)
 	if err != nil {
@@ -106,6 +139,7 @@ func TestRotateHandlerInvalidJSON(t *testing.T) {
 	body := `{invalid json}`
 	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+generateTestToken())
 
 	resp, err := app.Test(req)
 	if err != nil {
@@ -124,6 +158,7 @@ func TestRotateHandlerEmptyMatrix(t *testing.T) {
 	body := `{"matrix": [], "degrees": 90}`
 	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+generateTestToken())
 
 	resp, err := app.Test(req)
 	if err != nil {
@@ -132,5 +167,23 @@ func TestRotateHandlerEmptyMatrix(t *testing.T) {
 
 	if resp.StatusCode != fiber.StatusBadRequest {
 		t.Errorf("expected status 400, got %d", resp.StatusCode)
+	}
+}
+
+func TestRotateHandlerWithoutToken(t *testing.T) {
+	app, mock := setupTestApp()
+	defer mock.Close()
+
+	body := `{"matrix": [[1,2,3],[4,5,6]], "degrees": 90}`
+	req := httptest.NewRequest("POST", "/api/v1/matrix/rotate", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status 401, got %d", resp.StatusCode)
 	}
 }
