@@ -10,10 +10,10 @@ import (
 
 // MatrixStatistics representa las estadísticas calculadas por api-express.
 type MatrixStatistics struct {
-	Max       int     `json:"max"`
-	Min       int     `json:"min"`
+	Max       float64 `json:"max"`
+	Min       float64 `json:"min"`
 	Average   float64 `json:"average"`
-	Sum       int     `json:"sum"`
+	Sum       float64 `json:"sum"`
 	IsDiagonal bool   `json:"isDiagonal"`
 }
 
@@ -37,7 +37,7 @@ func NewExpressClient(baseURL string, internalSecret string) *ExpressClient {
 
 // statsRequest representa el body enviado a api-express.
 type statsRequest struct {
-	Matrix [][]int `json:"matrix"`
+	Matrix [][]float64 `json:"matrix"`
 }
 
 // statsResponse representa la respuesta de api-express.
@@ -46,7 +46,7 @@ type statsResponse struct {
 }
 
 // GetStatistics envía la matriz rotada a api-express y retorna las estadísticas.
-func (c *ExpressClient) GetStatistics(matrix [][]int) (*MatrixStatistics, error) {
+func (c *ExpressClient) GetStatistics(matrix [][]float64) (*MatrixStatistics, error) {
 	body, err := json.Marshal(statsRequest{Matrix: matrix})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal matrix: %w", err)

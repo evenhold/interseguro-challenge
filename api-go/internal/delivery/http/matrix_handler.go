@@ -48,7 +48,7 @@ func (h *MatrixHandler) Rotate(c *fiber.Ctx) error {
 	}
 
 	// Llamar a api-express para obtener estadísticas
-	stats, err := h.express.GetStatistics([][]int(rotated))
+	stats, err := h.express.GetStatistics(intToFloatMatrix([][]int(rotated)))
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(
 			dto.ErrorResponse("failed to get statistics: "+err.Error()),
@@ -88,20 +88,15 @@ func (h *MatrixHandler) QR(c *fiber.Ctx) error {
 		)
 	}
 
-	// Convertir Q y R a [][]int para api-express (stats trabaja con enteros)
-	qInt := floatToIntMatrix(qrResult.Q)
-	rInt := floatToIntMatrix(qrResult.R)
-
-	// Obtener estadísticas de Q
-	statsQ, err := h.express.GetStatistics(qInt)
+	// Obtener estadísticas de Q y R directamente (sin redondeo)
+	statsQ, err := h.express.GetStatistics(qrResult.Q)
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(
 			dto.ErrorResponse("failed to get Q statistics: "+err.Error()),
 		)
 	}
 
-	// Obtener estadísticas de R
-	statsR, err := h.express.GetStatistics(rInt)
+	statsR, err := h.express.GetStatistics(qrResult.R)
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(
 			dto.ErrorResponse("failed to get R statistics: "+err.Error()),
@@ -124,13 +119,13 @@ func (h *MatrixHandler) QR(c *fiber.Ctx) error {
 	)
 }
 
-// floatToIntMatrix convierte [][]float64 a [][]int redondeando al entero más cercano.
-func floatToIntMatrix(m [][]float64) [][]int {
-	result := make([][]int, len(m))
+// intToFloatMatrix convierte [][]int a [][]float64.
+func intToFloatMatrix(m [][]int) [][]float64 {
+	result := make([][]float64, len(m))
 	for i, row := range m {
-		result[i] = make([]int, len(row))
+		result[i] = make([]float64, len(row))
 		for j, v := range row {
-			result[i][j] = int(v + 0.5)
+			result[i][j] = float64(v)
 		}
 	}
 	return result

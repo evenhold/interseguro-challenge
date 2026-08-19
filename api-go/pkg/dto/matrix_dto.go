@@ -36,10 +36,10 @@ type QRStatistics struct {
 
 // Statistics representa las estadísticas calculadas por api-express.
 type Statistics struct {
-	Max        int     `json:"max"`
-	Min        int     `json:"min"`
+	Max        float64 `json:"max"`
+	Min        float64 `json:"min"`
 	Average    float64 `json:"average"`
-	Sum        int     `json:"sum"`
+	Sum        float64 `json:"sum"`
 	IsDiagonal bool    `json:"isDiagonal"`
 }
 
