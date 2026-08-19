@@ -378,7 +378,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Promedio</p>
-                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.average.toFixed(3)}</p>
+                      <p className="text-xl font-bold text-navy">{rotateResult.statistics.average.toFixed(4)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Suma</p>
@@ -427,7 +427,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Promedio</p>
-                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.average.toFixed(3)}</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.q.average.toFixed(4)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Suma</p>
@@ -453,7 +453,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Promedio</p>
-                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.average.toFixed(3)}</p>
+                      <p className="text-xl font-bold text-navy">{qrResult.statistics.r.average.toFixed(4)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Suma</p>
