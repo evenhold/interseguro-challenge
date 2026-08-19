@@ -18,6 +18,7 @@ Conceptos matemáticos usados en el reto (rotación, vectores, QR).
 - [Matrix Rotation](math/matrix-rotation.md) — Rotación 90°, 180°, 270° (horaria y antihoraria)
 - [Vector Operations](math/vector-operations.md) — Módulo, producto escalar, producto vectorial, ortogonalidad, matriz diagonal
 - [QR Factorization](math/qr-factorization.md) — Factorización QR con Gram-Schmidt
+- [Statistics](math/statistics.md) — Estadísticas de matriz (max, min, average, sum, isDiagonal)
 
 ---
 
@@ -27,4 +28,5 @@ Conceptos matemáticos usados en el reto (rotación, vectores, QR).
 2. [Matrix Rotation](math/matrix-rotation.md) — Operación principal del reto
 3. [Vector Operations](math/vector-operations.md) — Prerrequisito para QR
 4. [QR Factorization](math/qr-factorization.md) — Si el reto lo requiere
-5. [Architecture](challenge/architecture.md) — Cómo se estructura el proyecto
+5. [Statistics](math/statistics.md) — Estadísticas calculadas sobre matrices
+6. [Architecture](challenge/architecture.md) — Cómo se estructura el proyecto
