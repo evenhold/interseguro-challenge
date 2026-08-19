@@ -8,11 +8,30 @@ type RotateRequest struct {
 	Degrees int     `json:"degrees"`
 }
 
+// QRRequest representa el body de la petición POST /api/matrix/qr.
+type QRRequest struct {
+	Matrix [][]int `json:"matrix"`
+}
+
 // RotateResponse representa la respuesta exitosa de rotación.
 type RotateResponse struct {
 	Original [][]int `json:"original"`
 	Rotated  [][]int `json:"rotated"`
 	Degrees  int     `json:"degrees"`
+}
+
+// QRResponse representa la respuesta de factorización QR + estadísticas.
+type QRResponse struct {
+	Original   [][]int            `json:"original"`
+	Q          [][]float64        `json:"q"`
+	R          [][]float64        `json:"r"`
+	Statistics QRStatistics       `json:"statistics"`
+}
+
+// QRStatistics contiene estadísticas de Q y R por separado.
+type QRStatistics struct {
+	Q Statistics `json:"q"`
+	R Statistics `json:"r"`
 }
 
 // Statistics representa las estadísticas calculadas por api-express.

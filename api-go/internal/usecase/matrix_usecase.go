@@ -2,13 +2,21 @@ package usecase
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/user/interseguro-challenge-api-go/internal/domain"
 )
 
+// QRResult contiene las matrices Q y R de la factorización QR.
+type QRResult struct {
+	Q [][]float64 `json:"q"`
+	R [][]float64 `json:"r"`
+}
+
 // MatrixUsecase define las operaciones disponibles para matrices.
 type MatrixUsecase interface {
 	Rotate(matrix domain.Matrix, degrees int) (domain.Matrix, error)
+	QRFactorize(matrix domain.Matrix) (*QRResult, error)
 }
 
 // matrixUsecase implementa MatrixUsecase.
@@ -99,4 +107,73 @@ func rotate270Clockwise(matrix domain.Matrix) domain.Matrix {
 	}
 
 	return result
+}
+
+// QRFactorize calcula la descomposición QR usando Gram-Schmidt modificado.
+// Recibe una matriz rectangular (m×n) y devuelve Q (m×n) y R (n×n).
+// Complejidad: O(m × n²)
+func (u *matrixUsecase) QRFactorize(matrix domain.Matrix) (*QRResult, error) {
+	if !matrix.IsValid() {
+		return nil, fmt.Errorf("invalid matrix: must be non-empty and rectangular")
+	}
+
+	m := matrix.Rows()
+	n := matrix.Cols()
+
+	// Copiar a float64
+	a := make([][]float64, m)
+	for i := range a {
+		a[i] = make([]float64, n)
+		for j := range a[i] {
+			a[i][j] = float64(matrix[i][j])
+		}
+	}
+
+	// Inicializar Q y R
+	q := make([][]float64, m)
+	for i := range q {
+		q[i] = make([]float64, n)
+	}
+	r := make([][]float64, n)
+	for i := range r {
+		r[i] = make([]float64, n)
+	}
+
+	// Gram-Schmidt modificado
+	for j := 0; j < n; j++ {
+		// Copiar columna j de A
+		v := make([]float64, m)
+		for i := 0; i < m; i++ {
+			v[i] = a[i][j]
+		}
+
+		// Restar proyecciones de columnas anteriores
+		for i := 0; i < j; i++ {
+			dot := 0.0
+			for k := 0; k < m; k++ {
+				dot += q[k][i] * v[k]
+			}
+			r[i][j] = dot
+			for k := 0; k < m; k++ {
+				v[k] -= dot * q[k][i]
+			}
+		}
+
+		// Norma del vector resultante
+		norm := 0.0
+		for k := 0; k < m; k++ {
+			norm += v[k] * v[k]
+		}
+		norm = math.Sqrt(norm)
+		r[j][j] = norm
+
+		// Normalizar y almacenar en Q
+		if norm > 1e-10 {
+			for k := 0; k < m; k++ {
+				q[k][j] = v[k] / norm
+			}
+		}
+	}
+
+	return &QRResult{Q: q, R: r}, nil
 }

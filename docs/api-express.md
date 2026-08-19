@@ -22,7 +22,14 @@ Puerto: `:3002` (host) / `:3000` (container)
 
 ## `POST /api/v1/matrix/statistics`
 
-Recibe una matriz de enteros y calcula estadísticas básicas.
+Recibe una matriz de enteros y calcula estadísticas básicas. Es consumido internamente por api-go para:
+
+| Origen | Descripción |
+| ------ | ----------- |
+| `POST /api/v1/matrix/rotate` | Estadísticas de la matriz rotada |
+| `POST /api/v1/matrix/qr` | Estadísticas de Q y R por separado (2 llamadas) |
+
+> **Nota:** api-express no tiene un endpoint `/qr`. El endpoint `/qr` vive en api-go, que calcula la factorización QR y luego llama dos veces a `/statistics` de api-express: una con Q y otra con R.
 
 ### Request Body
 

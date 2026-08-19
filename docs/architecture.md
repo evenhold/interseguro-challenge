@@ -12,6 +12,8 @@
 
 ## Flujo completo
 
+### Rotación + Estadísticas
+
 ```
 1. Frontend → POST /api/v1/matrix/rotate (matrix, degrees)
        ↓
@@ -22,6 +24,21 @@
 4. api-express: calcula {max, min, average, sum, isDiagonal}
        ↓
 5. api-go: retorna {rotated, statistics} al frontend
+```
+
+### Factorización QR + Estadísticas
+
+```
+1. Frontend → POST /api/v1/matrix/qr (matrix)
+       ↓
+2. api-go: calcula QR (Gram-Schmidt) → Q ortogonal + R triangular
+       ↓
+3. api-go → POST /api/v1/matrix/statistics (Q como enteros)
+4. api-go → POST /api/v1/matrix/statistics (R como enteros)
+       ↓
+5. api-express: calcula estadísticas de Q y R por separado
+       ↓
+6. api-go: retorna {q, r, statistics: {q, r}} al frontend
 ```
 
 ## Response completa
@@ -65,7 +82,7 @@
 
 ```
 domain/        → Entidades puras (Matrix)
-usecase/       → Lógica de negocio (Rotate)
+usecase/       → Lógica de negocio (Rotate, QRFactorize)
 infrastructure/→ Clientes HTTP (ExpressClient)
 delivery/http/ → Handlers HTTP (Fiber)
 pkg/dto/       → Request/Response DTOs
