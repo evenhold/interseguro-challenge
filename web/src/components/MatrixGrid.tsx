@@ -25,7 +25,7 @@ export default function MatrixGrid({ matrix, editable = false, onChange }: Matri
           {row.map((cell, ci) => (
             <div
               key={ci}
-              className={`flex h-12 w-12 items-center justify-center border border-gray-200 text-sm font-mono ${
+              className={`flex h-10 w-14 items-center justify-center border border-gray-200 text-[11px] font-mono ${
                 editable
                   ? "cursor-pointer bg-white hover:bg-gray-50 focus-within:bg-gray-100"
                   : "bg-gray-50"
@@ -36,7 +36,7 @@ export default function MatrixGrid({ matrix, editable = false, onChange }: Matri
                   type="number"
                   value={cell}
                   onChange={(e) => handleChange(ri, ci, e.target.value)}
-                  className="h-full w-full bg-transparent text-center outline-none"
+                  className="h-full w-full bg-transparent text-center text-[11px] outline-none"
                 />
               ) : (
                 <span>{cell}</span>
