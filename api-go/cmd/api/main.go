@@ -18,7 +18,9 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("no .env file found, using environment variables")
+	}
 
 	cfg := config.Load()
 	logger := config.NewLogger(cfg.Debug)
@@ -44,11 +46,7 @@ func main() {
 	app.Get("/health", handlers.Health)
 	app.Get("/", handlers.Hello)
 
-	app.Use(func(c *fiber.Ctx) error {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Not found",
-		})
-	})
+	app.Use(middlewares.NotFoundHandler)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

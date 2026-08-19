@@ -2,15 +2,16 @@ services:
   api-go:
     build:
       context: ./api-go
-      target: builder
+      target: dev
     command: go run ./cmd/api
     volumes:
       - ./api-go:/app
     ports:
       - "3001:8080"
+    env_file:
+      - ./api-go/.env
     environment:
-      - PORT=8080
-      - NODE_ENV=development
+      - APP_ENV=development
     networks:
       - backend
 

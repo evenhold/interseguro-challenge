@@ -17,7 +17,7 @@ func Load() *Config {
 		port = "8080"
 	}
 
-	env := os.Getenv("NODE_ENV")
+	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "development"
 	}
